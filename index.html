@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KTTX An Sinh Xã Hội - GDKT&PL 12</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+        }
+        .opt-card:hover {
+            border-color: #6366f1;
+            background-color: rgba(99, 102, 241, 0.1);
+        }
+        .opt-card.selected {
+            background-color: #4f46e5 !important;
+            border-color: #818cf8 !important;
+            color: #ffffff !important;
+        }
+        .tf-btn.active-true {
+            background-color: #10b981 !important;
+            color: #ffffff !important;
+            border-color: #10b981 !important;
+        }
+        .tf-btn.active-false {
+            background-color: #f43f5e !important;
+            color: #ffffff !important;
+            border-color: #f43f5e !important;
+        }
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 sm:p-6 no-select bg-slate-950" oncontextmenu="return false;">
+
+    <!-- Strict Fullscreen Overlay Notice (if exited fullscreen) -->
+    <div id="fullscreen-lock-modal" class="hidden fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+        <div class="max-w-md space-y-4">
+            <span class="text-6xl">🔒</span>
+            <h3 class="text-xl font-bold text-rose-500">Màn hình bài thi đã bị khóa!</h3>
+            <p class="text-sm text-slate-300">Bạn đã thoát khỏi chế độ toàn màn hình hoặc thao tác ra ngoài. Bài thi sẽ bị thu hồi và tự động nộp ngay bây giờ.</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="max-w-4xl mx-auto w-full flex items-center justify-between pb-4 border-b border-slate-700">
+        <div class="flex items-center gap-3">
+            <span class="text-3xl">🛡️</span>
+            <div>
+                <h1 class="text-lg font-bold text-cyan-400">KTTX AN SINH XÃ HỘI</h1>
+                <p class="text-xs text-slate-400">Giáo dục Kinh tế & Pháp luật 12</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <div id="timer-box" class="hidden bg-slate-800 border border-slate-600 px-3 py-1.5 rounded-xl font-mono text-cyan-300 font-extrabold text-sm">
+                ⏱️ <span id="time-display">15:00</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-4xl mx-auto w-full my-auto py-6">
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="glass-card rounded-3xl p-6 sm:p-8 text-center space-y-6 max-w-lg mx-auto shadow-2xl">
+            <h2 class="text-2xl font-black text-white">Bài Kiểm Tra Trực Tuyến</h2>
+            <p class="text-slate-300 text-sm">Vui lòng nhập thông tin để bắt đầu làm bài (22 câu - 15 phút).</p>
+
+            <div class="bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-2xl p-4 text-xs text-left space-y-1.5">
+                <p class="font-bold flex items-center gap-1.5">⛔ QUY ĐỊNH CHỐNG GIAN LẬN TUYỆT ĐỐI:</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-300">
+                    <li>Bài thi bắt buộc thực hiện ở chế độ <strong>Toàn màn hình (Fullscreen)</strong>.</li>
+                    <li>Không được thoát Fullscreen, chuyển tab hay bấm bất kỳ phím điều hướng ngoài.</li>
+                    <li><strong class="text-rose-400">Mọi hành vi thoát màn hình làm bài sẽ khiến bài thi bị KHÓA và NỘP NGAY LẬP TỨC!</strong></li>
+                </ul>
+            </div>
+            
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Họ và tên học sinh <span class="text-rose-400">*</span></label>
+                    <input type="text" id="student-name" placeholder="Nhập họ và tên..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Lớp học <span class="text-rose-400">*</span></label>
+                    <select id="student-class" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        <option value="" disabled selected>-- Chọn lớp --</option>
+                        <option value="12XH2">Lớp 12XH2</option>
+                        <option value="12XH1">Lớp 12XH1</option>
+                        <option value="12XH3">Lớp 12XH3</option>
+                        <option value="12A1">Lớp 12A1</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="startQuiz()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition-all text-sm">
+                BẮT ĐẦU LÀM BÀI
+            </button>
+        </div>
+
+        <!-- Quiz Workspace -->
+        <div id="quiz-workspace" class="hidden space-y-6">
+            <!-- Palette Nav -->
+            <div class="glass-card p-3 rounded-2xl flex flex-wrap gap-2 justify-center" id="palette-container"></div>
+
+            <!-- Question Card Container -->
+            <div id="questions-container"></div>
+
+            <!-- Navigation Controls -->
+            <div class="flex items-center justify-between gap-2 sm:gap-4 flex-wrap">
+                <div class="flex gap-2">
+                    <button id="prev-btn" onclick="prevQuestion()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold disabled:opacity-30 transition-all">
+                        ← Câu trước
+                    </button>
+                    <button id="next-btn" onclick="nextQuestion()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all">
+                        Câu tiếp →
+                    </button>
+                </div>
+                <span id="step-indicator" class="text-xs font-bold text-slate-400"></span>
+                <button id="submit-btn" onclick="confirmSubmit()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-6 py-2.5 rounded-xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 transition-all uppercase tracking-wider">
+                    📝 NỘP BÀI
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden glass-card rounded-3xl p-8 text-center space-y-6 max-w-lg mx-auto">
+            <span class="text-6xl block">🏆</span>
+            <h2 class="text-2xl font-black text-white">Kết Quả Bài Kiểm Tra</h2>
+            <div class="bg-slate-900 p-4 rounded-2xl border border-slate-700 space-y-2">
+                <p id="student-info-display" class="text-sm font-semibold text-indigo-300 mb-1"></p>
+                <p class="text-xs text-slate-400 font-bold uppercase">Điểm số của bạn</p>
+                <p id="score-display" class="text-4xl font-black text-cyan-400">0/10</p>
+                <p id="time-spent" class="text-xs text-slate-300"></p>
+                <div id="anti-cheat-report" class="pt-2 text-xs border-t border-slate-800 font-medium"></div>
+            </div>
+
+            <!-- Google Form Auto Sync Indicator -->
+            <div id="form-submit-status" class="text-xs p-3 rounded-xl bg-slate-900/80 border border-slate-700 text-slate-400">
+                🔄 Đang lưu kết quả lên hệ thống của giáo viên...
+            </div>
+
+            <button onclick="location.reload()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl text-sm">Làm lại bài</button>
+        </div>
+
+    </main>
+
+    <script>
+        const rawQuizData = [
+            { id: 55, type: 'mc', question: 'Hệ thống các chính sách và chương trình do Nhà nước thực hiện nhằm hỗ trợ người dân phòng ngừa, giảm thiểu và khắc phục rủi ro cuộc sống được gọi là', options: ['A. An sinh xã hội.', 'B. Cạnh tranh kinh tế.', 'C. Lạm phát tiền tệ.', 'D. Tăng trưởng kinh tế.'], answer: 0 },
+            { id: 56, type: 'mc', question: 'Chính sách nào sau đây thuộc nhóm chính sách Hỗ trợ việc làm, thu nhập và giảm nghèo?', options: ['A. Cho vay vốn ưu đãi tạo việc làm và đào tạo nghề cho lao động nông thôn.', 'B. Chi trả lương hưu hàng tháng.', 'C. Cấp thẻ BHYT miễn phí cho hộ nghèo.', 'D. Cứu trợ lũ lụt khẩn cấp.'], answer: 0 },
+            { id: 57, type: 'mc', question: 'Việc Cấp thẻ Bảo hiểm y tế miễn phí cho hộ nghèo, hộ cận nghèo thuộc nhóm chính sách an sinh xã hội nào?', options: ['A. Bảo đảm các dịch vụ xã hội cơ bản.', 'B. Hỗ trợ việc làm.', 'C. Trợ giúp xã hội đột xuất.', 'D. Phát triển thị trường chứng khoán.'], answer: 0 },
+            { id: 58, type: 'mc', question: 'Chính sách Trợ giúp xã hội đột xuất được áp dụng trong trường hợp nào sau đây?', options: ['A. Người dân gặp rủi ro thiên tai, hỏa hoạn, dịch bệnh bất ngờ.', 'B. Cán bộ về hưu đủ tuổi.', 'C. Học sinh đi du lịch.', 'D. Doanh nghiệp mở rộng thị trường.'], answer: 0 },
+            { id: 59, type: 'mc', question: 'Các dịch vụ xã hội cơ bản tối thiểu mà Nhà nước bảo đảm cho người dân bao gồm:', options: ['A. Giáo dục, Y tế, Nhà ở, Nước sạch, Thông tin truyền thông.', 'B. Ô tô, Mua sắm xa xỉ, Du lịch nước ngoài.', 'C. Mua cổ phiếu, Đầu tư bất động sản.', 'D. Miễn phí toàn bộ nhà hàng khách sạn.'], answer: 0 },
+            { id: 60, type: 'mc', question: 'Trợ giúp xã hội thường xuyên áp dụng cho đối tượng nào sau đây?', options: ['A. Trẻ em mồ côi, người già cô đơn không nơi dựa dẫm, người khuyết tật nặng.', 'B. Doanh nhân thành đạt.', 'C. Người lao động đang có thu nhập cao.', 'D. Sinh viên vừa tốt nghiệp xuất sắc.'], answer: 0 },
+            { id: 61, type: 'mc', question: 'Mục tiêu tổng quát của hệ thống an sinh xã hội ở nước ta là', options: ['A. bảo đảm nâng cao đời sống vật chất và tinh thần cho nhân dân, không để ai bị bỏ lại phía sau.', 'B. làm tăng tỷ lệ lạm phát phi mã.', 'C. triệt tiêu khu vực kinh tế tư nhân.', 'D. cấm người dân đi làm tự do.'], answer: 0 },
+            { id: 62, type: 'mc', question: 'Chính sách Bảo hiểm (BHXH, BHYT, BHTN) giữ vai trò gì trong hệ thống an sinh xã hội?', options: ['A. Là trụ cột cốt lõi giúp người dân chủ động phòng ngừa và giảm thiểu rủi ro thu nhập/sức khỏe.', 'B. Là nguồn thu duy nhất của ngân sách nhà nước.', 'C. Chỉ áp dụng cho người nghèo.', 'D. Làm suy giảm tăng trưởng kinh tế.'], answer: 0 },
+            { id: 63, type: 'mc', question: 'Sự khác biệt giữa Trợ giúp xã hội đột xuất và Trợ giúp xã hội thường xuyên là', options: ['A. Đột xuất hỗ trợ tức thời khi sự cố bất ngờ; Thường xuyên hỗ trợ trợ cấp hằng tháng cho đối tượng bảo trợ.', 'B. Đột xuất dành cho người giàu; Thường xuyên dành cho người nghèo.', 'C. Đột xuất chi bằng vàng; Thường xuyên chi bằng ngoại tệ.', 'D. Đột xuất do công ty tư nhân trả.'], answer: 0 },
+            { id: 64, type: 'mc', question: 'Chính sách hỗ trợ nhà ở xã hội, nước sạch cho vùng bãi ngang ven biển thuộc nhóm chính sách', options: ['A. bảo đảm các dịch vụ xã hội cơ bản.', 'B. trợ giúp xã hội đột xuất.', 'C. bảo hiểm thương mại.', 'D. độc quyền nhà nước.'], answer: 0 },
+            { id: 65, type: 'mc', question: 'Tác động của hệ thống an sinh xã hội đối với sự phát triển kinh tế xã hội là', options: ['A. góp phần dịch chuyển cơ cấu kinh tế, ổn định chính trị xã hội và thúc đẩy tiến bộ xã hội.', 'B. làm gia tăng thất nghiệp chu kỳ.', 'C. triệt tiêu động lực làm việc của nhân dân.', 'D. gây lãng phí toàn bộ ngân sách.'], answer: 0 },
+            { id: 66, type: 'mc', question: 'Khi một hộ gia đình vừa được vay vốn ưu đãi tạo việc làm, vừa được cấp thẻ BHYT miễn phí thì hộ đó đang', options: ['A. thụ hưởng đồng thời nhiều chính sách an sinh xã hội bổ trợ cho nhau.', 'B. vi phạm pháp luật an sinh.', 'C. bị tước quyền công dân.', 'D. phải nộp phạt cho Nhà nước.'], answer: 0 },
+            { id: 67, type: 'mc', question: 'Trận lũ quét gây thiệt hại nặng nề tại huyện M. Chính phủ đã lập tức xuất gạo dự trữ quốc gia và tiền mặt để hỗ trợ khẩn cấp cho các hộ dân bị mất nhà cửa. Đây là chính sách', options: ['A. Trợ giúp xã hội đột xuất.', 'B. Trợ giúp xã hội thường xuyên.', 'C. Bảo hiểm xã hội tự nguyện.', 'D. Bảo hiểm thương mại.'], answer: 0 },
+            { id: 68, type: 'mc', question: 'Anh T là thanh niên nông thôn được Ngân hàng Chính sách xã hội cho vay vốn ưu đãi 50 triệu đồng để mở trang trại nuôi gà thả vườn. Chính sách này thuộc nhóm', options: ['A. Hỗ trợ việc làm, thu nhập và giảm nghèo.', 'B. Bảo hiểm y tế toàn dân.', 'C. Cứu trợ thiên tai đột xuất.', 'D. Dịch vụ internet miễn phí.'], answer: 0 },
+            { id: 69, type: 'mc', question: 'Hành vi nào sau đây thể hiện trách nhiệm của công dân đối với chính sách an sinh xã hội?', options: ['A. Tự giác chấp hành nghĩa vụ đóng bảo hiểm, kê khai trung thực để hưởng đúng chính sách.', 'B. Trục lợi tiền cứu trợ thiên tai.', 'C. Tẩy chay thẻ BHYT.', 'D. Khai gian hộ nghèo để lấy tiền trợ cấp.'], answer: 0 },
+            { id: 70, type: 'mc', question: 'Nhà nước miễn học phí cho học sinh tiểu học công lập và hỗ trợ chi phí học tập cho học sinh vùng cao nhằm thực hiện chính sách an sinh xã hội nào?', options: ['A. Bảo đảm dịch vụ xã hội cơ bản về giáo dục.', 'B. Trợ giúp xã hội đột xuất.', 'C. Bảo hiểm thất nghiệp.', 'D. Hỗ trợ xuất khẩu lao động.'], answer: 0 },
+            { id: 71, type: 'mc', question: 'Trường hợp người khuyết tật nặng được nhận trợ cấp hằng tháng và được cấp thẻ BHYT miễn phí là sự kết hợp giữa', options: ['A. Trợ giúp xã hội thường xuyên và Bảo đảm dịch vụ y tế.', 'B. Trợ giúp đột xuất và Bảo hiểm thất nghiệp.', 'C. Hỗ trợ tín dụng và Cho vay thương mại.', 'D. Xuất khẩu lao động và Cứu trợ hỏa hoạn.'], answer: 0 },
+            { id: 72, type: 'mc', question: 'Khẳng định nào sau đây KHÔNG đúng khi nói về hệ thống an sinh xã hội ở Việt Nam?', options: ['A. Chỉ có người nghèo mới cần và được tham gia hệ thống an sinh xã hội.', 'B. An sinh xã hội là quyền cống hiến và thụ hưởng chính đáng của mọi công dân.', 'C. BHXH và BHYT là hai trụ cột cốt lõi của hệ thống an sinh xã hội.', 'D. An sinh xã hội gắn liền với phát triển bền vững đất nước.'], answer: 0 },
+            { id: 73, type: 'mc', question: 'Để hệ thống an sinh xã hội vận hành hiệu quả bền vững, Nhà nước giữ vai trò chủ đạo cùng với sự', options: ['A. huy động hợp lực của toàn xã hội, doanh nghiệp và sự chủ động của chính người dân.', 'B. bao cấp toàn bộ 100% từ nguồn vốn vay nước ngoài.', 'C. phụ thuộc hoàn toàn vào viện trợ phi chính phủ.', 'D. triệt tiêu đóng góp đóng phí của người lao động.'], answer: 0 },
+            { id: 74, type: 'mc', question: 'Giải pháp lâu dài và căn cơ nhất để giúp các hộ gia đình thoát nghèo bền vững trong chính sách an sinh xã hội là', options: ['A. Hỗ trợ đào tạo nghề, tạo sinh kế việc làm và cho vay vốn sản xuất kinh doanh.', 'B. Chỉ cho tiền mặt tiêu dùng hàng ngày.', 'C. Cung cấp thực phẩm miễn phí trọn đời.', 'D. Cho phép trốn thuế.'], answer: 0 },
+            { id: 81, type: 'tf', question: 'Gia đình ông H thuộc hộ nghèo bãi ngang ven biển. Gia đình được Nhà nước cấp thẻ BHYT miễn phí, Ngân hàng Chính sách xã hội cho vay 40 triệu đồng vốn ưu đãi nuôi bò sinh sản, và con trai ông H được hỗ trợ miễn học phí nghề lái xe. Đánh giá các nhận định sau:', subQuestions: [{ label: 'a) Cấp thẻ BHYT miễn phí cho gia đình ông H thuộc nhóm chính sách bảo đảm dịch vụ xã hội cơ bản.', answer: true }, { label: 'b) Vốn vay ưu đãi nuôi bò thuộc nhóm chính sách Hỗ trợ việc làm, thu nhập và giảm nghèo.', answer: true }, { label: 'c) Việc kết hợp đồng bộ các chính sách an sinh giúp gia đình ông H có điều kiện thoát nghèo bền vững.', answer: true }, { label: 'd) Các chính sách an sinh nói trên làm gia tăng sự lãng phí và triệt tiêu động lực vươn lên của hộ nghèo.', answer: false }] },
+            { id: 82, type: 'tf', question: 'Cơn bão tàn phá gây sạt lở toàn bộ nhà cửa của 15 hộ dân xã Y. Ngay lập tức, Ủy ban nhân dân tỉnh đã xuất quỹ dự trữ hỗ trợ khẩn cấp 50 triệu đồng/hộ và cung cấp nhu yếu phẩm. Đồng thời, lực lượng quân đội dựng nhà bạt tạm thời cho bà con. Đánh giá các nhận định sau:', subQuestions: [{ label: 'a) Hoạt động hỗ trợ khẩn cấp cho xã Y là chính sách Trợ giúp xã hội đột xuất.', answer: true }, { label: 'b) Đây là minh chứng cho vai trò chủ đạo của Nhà nước trong thực hiện an sinh xã hội.', answer: true }, { label: 'c) Trợ giúp xã hội đột xuất được thực hiện định kỳ hằng tháng trọn đời cho các nạn nhân.', answer: false }, { label: 'd) Việc cứu trợ trợ giúp đột xuất kịp thời giúp người dân nhanh chóng ổn định đời sống sau rủi ro thiên tai.', answer: true }] }
+        ];
+
+        let currentIndex = 0;
+        let userAnswers = {};
+        let timeLeft = 15 * 60;
+        let timerInterval = null;
+        let studentName = '';
+        let studentClass = '';
+
+        // Anti-Cheating Tracking Variables
+        let isQuizActive = false;
+        let violationOccurred = false;
+        let violationReason = '';
+
+        function requestFullscreenMode() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+        }
+
+        function startQuiz() {
+            studentName = document.getElementById('student-name').value.trim();
+            studentClass = document.getElementById('student-class').value;
+
+            if (!studentName || !studentClass) {
+                alert('Vui lòng nhập đầy đủ Họ tên và Chọn lớp học!');
+                return;
+            }
+
+            // Request Fullscreen immediately upon starting
+            requestFullscreenMode();
+
+            // Enable Strict Anti-cheat state
+            isQuizActive = true;
+            setupStrictLockGuard();
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-workspace').classList.remove('hidden');
+            document.getElementById('timer-box').classList.remove('hidden');
+
+            renderQuestions();
+            renderPalette();
+            updateStep();
+            startTimer();
+        }
+
+        // --- Strict Lock & Anti-cheat Guard Logic ---
+        function setupStrictLockGuard() {
+            // 1. Lock Fullscreen: Auto-submit if student exits fullscreen mode
+            const handleFullscreenChange = () => {
+                if (isQuizActive && !document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                    triggerStrictViolation("Thoát khỏi chế độ Toàn màn hình (Fullscreen)");
+                }
+            };
+            document.addEventListener('fullscreenchange', handleFullscreenChange);
+            document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+            // 2. Detect Visibility Change (Switching tabs / minimizing window)
+            document.addEventListener('visibilitychange', () => {
+                if (isQuizActive && document.hidden) {
+                    triggerStrictViolation("Rời khỏi trang làm bài / Chuyển tab");
+                }
+            });
+
+            // 3. Detect Window Blur (Focus loss / Alt+Tab / Clicking desktop)
+            window.addEventListener('blur', () => {
+                if (isQuizActive) {
+                    triggerStrictViolation("Mất tiêu điểm màn hình bài thi (Chuyển cửa sổ)");
+                }
+            });
+
+            // 4. Block hotkeys and system navigation keys
+            document.addEventListener('keydown', (e) => {
+                if (!isQuizActive) return;
+
+                // Block Alt, Tab, Windows Key, F12, Escape, Ctrl shortcuts
+                if (
+                    e.key === 'F12' ||
+                    e.key === 'Escape' ||
+                    e.key === 'Tab' ||
+                    e.altKey ||
+                    e.metaKey ||
+                    (e.ctrlKey && (
+                        e.key === 'i' || e.key === 'I' ||
+                        e.key === 'j' || e.key === 'J' ||
+                        e.key === 'u' || e.key === 'U' ||
+                        e.key === 'c' || e.key === 'C' ||
+                        e.key === 'v' || e.key === 'V' ||
+                        e.key === 'a' || e.key === 'A' ||
+                        e.key === 's' || e.key === 'S' ||
+                        e.key === 'p' || e.key === 'P'
+                    ))
+                ) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    triggerStrictViolation(`Bấm phím bị cấm (${e.key})`);
+                }
+            });
+
+            // 5. Prevent Drag and Drop text
+            document.addEventListener('dragstart', (e) => {
+                if (isQuizActive) e.preventDefault();
+            });
+        }
+
+        function triggerStrictViolation(reason) {
+            if (!isQuizActive) return;
+
+            violationOccurred = true;
+            violationReason = reason;
+
+            // Show Lock Screen overlay briefly & force submit immediately
+            document.getElementById('fullscreen-lock-modal').classList.remove('hidden');
+            setTimeout(() => {
+                submitQuiz(true);
+            }, 600);
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const m = Math.floor(timeLeft / 60);
+                const s = timeLeft % 60;
+                document.getElementById('time-display').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert('Hết giờ làm bài!');
+                    submitQuiz();
+                }
+            }, 1000);
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            let html = '';
+
+            rawQuizData.forEach((q, idx) => {
+                if (q.type === 'mc') {
+                    html += `
+                        <div id="card-${idx}" class="glass-card rounded-2xl p-6 hidden space-y-4">
+                            <h3 class="font-extrabold text-white text-base">Câu ${idx + 1}: ${q.question}</h3>
+                            <div class="space-y-2">
+                                ${q.options.map((opt, optIdx) => `
+                                    <div onclick="selectMC(${q.id}, ${optIdx})" class="opt-card opt-${q.id}-${optIdx} cursor-pointer p-3 rounded-xl border border-slate-700 bg-slate-900/60 text-sm font-semibold transition-all">
+                                        ${opt}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div id="card-${idx}" class="glass-card rounded-2xl p-6 hidden space-y-4">
+                            <h3 class="font-extrabold text-white text-base">Câu ${idx + 1}: ${q.question}</h3>
+                            <div class="space-y-3">
+                                ${q.subQuestions.map((sub, subIdx) => `
+                                    <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700 flex items-center justify-between text-sm">
+                                        <span>${sub.label}</span>
+                                        <div class="flex gap-2">
+                                            <button onclick="selectTF(${q.id}, ${subIdx}, true)" class="tf-btn tf-${q.id}-${subIdx}-true px-3 py-1 rounded-lg border border-slate-600 text-xs font-bold text-emerald-400">ĐÚNG</button>
+                                            <button onclick="selectTF(${q.id}, ${subIdx}, false)" class="tf-btn tf-${q.id}-${subIdx}-false px-3 py-1 rounded-lg border border-slate-600 text-xs font-bold text-rose-400">SAI</button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderPalette() {
+            const container = document.getElementById('palette-container');
+            container.innerHTML = rawQuizData.map((_, idx) => `
+                <button id="pal-${idx}" onclick="jumpTo(${idx})" class="w-8 h-8 rounded-lg text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                    ${idx + 1}
+                </button>
+            `).join('');
+        }
+
+        function selectMC(qId, optIdx) {
+            userAnswers[qId] = optIdx;
+            const q = rawQuizData.find(item => item.id === qId);
+            q.options.forEach((_, idx) => {
+                const el = document.querySelector(`.opt-${qId}-${idx}`);
+                if (el) el.classList.remove('selected');
+            });
+            document.querySelector(`.opt-${qId}-${optIdx}`).classList.add('selected');
+            updatePaletteStatus();
+        }
+
+        function selectTF(qId, subIdx, val) {
+            userAnswers[`${qId}_${subIdx}`] = val;
+            const btnTrue = document.querySelector(`.tf-${qId}-${subIdx}-true`);
+            const btnFalse = document.querySelector(`.tf-${qId}-${subIdx}-false`);
+
+            if (val) {
+                btnTrue.classList.add('active-true');
+                btnFalse.classList.remove('active-false');
+            } else {
+                btnFalse.classList.add('active-false');
+                btnTrue.classList.remove('active-true');
+            }
+            updatePaletteStatus();
+        }
+
+        function updatePaletteStatus() {
+            rawQuizData.forEach((q, idx) => {
+                const pal = document.getElementById(`pal-${idx}`);
+                let isAnswered = false;
+                if (q.type === 'mc') {
+                    if (userAnswers[q.id] !== undefined) isAnswered = true;
+                } else {
+                    let count = 0;
+                    q.subQuestions.forEach((_, subIdx) => {
+                        if (userAnswers[`${q.id}_${subIdx}`] !== undefined) count++;
+                    });
+                    if (count === q.subQuestions.length) isAnswered = true;
+                }
+
+                if (isAnswered) {
+                    pal.classList.add('bg-indigo-900', 'text-indigo-200', 'border-indigo-500');
+                }
+            });
+        }
+
+        function jumpTo(idx) {
+            currentIndex = idx;
+            updateStep();
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateStep();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentIndex < rawQuizData.length - 1) {
+                currentIndex++;
+                updateStep();
+            }
+        }
+
+        function updateStep() {
+            rawQuizData.forEach((_, idx) => {
+                const card = document.getElementById(`card-${idx}`);
+                const pal = document.getElementById(`pal-${idx}`);
+                if (idx === currentIndex) {
+                    card.classList.remove('hidden');
+                    pal.classList.add('ring-2', 'ring-indigo-400', 'bg-indigo-600', 'text-white');
+                } else {
+                    card.classList.add('hidden');
+                    pal.classList.remove('ring-2', 'ring-indigo-400', 'bg-indigo-600');
+                }
+            });
+
+            document.getElementById('step-indicator').innerText = `Câu ${currentIndex + 1} / ${rawQuizData.length}`;
+            document.getElementById('prev-btn').disabled = currentIndex === 0;
+            document.getElementById('next-btn').disabled = currentIndex === rawQuizData.length - 1;
+        }
+
+        function countCompletedQuestions() {
+            let completed = 0;
+            rawQuizData.forEach(q => {
+                if (q.type === 'mc') {
+                    if (userAnswers[q.id] !== undefined) completed++;
+                } else {
+                    let count = 0;
+                    q.subQuestions.forEach((_, subIdx) => {
+                        if (userAnswers[`${q.id}_${subIdx}`] !== undefined) count++;
+                    });
+                    if (count === q.subQuestions.length) completed++;
+                }
+            });
+            return completed;
+        }
+
+        function confirmSubmit() {
+            const completed = countCompletedQuestions();
+            const total = rawQuizData.length;
+            const remaining = total - completed;
+
+            let msg = `Bạn đã hoàn thành ${completed}/${total} câu hỏi.`;
+            if (remaining > 0) {
+                msg += `\nVẫn còn ${remaining} câu chưa trả lời đầy đủ!\n\nBạn có chắc chắn muốn NỘP BÀI ngay bây giờ không?`;
+            } else {
+                msg += `\n\nBạn có chắc chắn muốn NỘP BÀI không?`;
+            }
+
+            if (confirm(msg)) {
+                submitQuiz();
+            }
+        }
+
+        function submitQuiz(forced = false) {
+            // Đã hoàn thành bài thi - dừng đếm ngược và khóa trạng thái làm bài
+            isQuizActive = false;
+            clearInterval(timerInterval);
+
+            // Gỡ bỏ cảnh báo đếm vi phạm trên màn hình chính
+            document.getElementById('quiz-workspace').classList.add('hidden');
+            document.getElementById('timer-box').classList.add('hidden');
+            document.getElementById('violation-badge').classList.add('hidden');
+            document.getElementById('cheat-modal').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            let score = 0;
+
+            rawQuizData.forEach(q => {
+                if (q.type === 'mc') {
+                    if (userAnswers[q.id] === q.answer) score += 0.4;
+                } else {
+                    q.subQuestions.forEach((sub, subIdx) => {
+                        if (userAnswers[`${q.id}_${subIdx}`] === sub.answer) score += 0.25;
+                    });
+                }
+            });
+
+            document.getElementById('student-info-display').innerText = `Học sinh: ${studentName} - Lớp ${studentClass}`;
+            document.getElementById('score-display').innerText = `${score.toFixed(1)}/10`;
+            const spentSec = 15 * 60 - timeLeft;
+            document.getElementById('time-spent').innerText = `Thời gian làm bài: ${Math.floor(spentSec / 60)} phút ${spentSec % 60} giây`;
+
+            const reportEl = document.getElementById('anti-cheat-report');
+            if (violationCount === 0) {
+                reportEl.innerHTML = `<span class="text-emerald-400 font-bold">✅ Bài làm hợp lệ (Không phát hiện gian lận)</span>`;
+            } else {
+                reportEl.innerHTML = `<span class="text-rose-400 font-bold">⚠️ Cảnh báo: Ghi nhận ${violationCount} lần rời màn hình/chuyển tab!${forced ? ' (Bị buộc nộp bài do vi phạm quá số lần quy định)' : ''}</span>`;
+            }
+
+            if (score >= 8.0 && violationCount < 3) {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+    </script>
+</body>
+</html>
+        function submitQuiz(forcedByViolation = false) {
+            // Turn off active state to stop all tracking
+            isQuizActive = false;
+            clearInterval(timerInterval);
+
+            // Hide overlay lock modal & workspace elements
+            document.getElementById('fullscreen-lock-modal').classList.add('hidden');
+            document.getElementById('quiz-workspace').classList.add('hidden');
+            document.getElementById('timer-box').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            // Exit fullscreen if still active
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            }
+
+            let score = 0;
+
+            rawQuizData.forEach(q => {
+                if (q.type === 'mc') {
+                    if (userAnswers[q.id] === q.answer) score += 0.4;
+                } else {
+                    q.subQuestions.forEach((sub, subIdx) => {
+                        if (userAnswers[`${q.id}_${subIdx}`] === sub.answer) score += 0.25;
+                    });
+                }
+            });
+
+            const finalScoreStr = `${score.toFixed(1)}/10`;
+
+            document.getElementById('student-info-display').innerText = `Học sinh: ${studentName} - Lớp ${studentClass}`;
+            document.getElementById('score-display').innerText = finalScoreStr;
+            const spentSec = 15 * 60 - timeLeft;
+            document.getElementById('time-spent').innerText = `Thời gian làm bài: ${Math.floor(spentSec / 60)} phút ${spentSec % 60} giây`;
+
+            const reportEl = document.getElementById('anti-cheat-report');
+            let scoreReportForForm = finalScoreStr;
+
+            if (!violationOccurred) {
+                reportEl.innerHTML = `<span class="text-emerald-400 font-bold">✅ Bài làm hợp lệ (Chấp hành tốt quy chế)</span>`;
+                if (score >= 8.0) {
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                }
+            } else {
+                scoreReportForForm += ` (VI PHẠM: ${violationReason})`;
+                reportEl.innerHTML = `
+                    <div class="bg-rose-950/80 border border-rose-600/50 p-3 rounded-xl text-rose-300 text-left">
+                        <p class="font-extrabold text-rose-400 mb-1">❌ BÀI THI BỊ KHÓA & NỘP TỰ ĐỘNG</p>
+                        <p class="text-xs">Lý do vi phạm quy chế: <span class="font-bold text-white">${violationReason}</span></p>
+                    </div>
+                `;
+            }
+
+            // Gửi dữ liệu điểm lên Google Form
+            sendDataToGoogleForm(studentName, studentClass, scoreReportForForm);
+        }
+
+        // --- Tích hợp tự động gửi kết quả về Google Form ---
+        function sendDataToGoogleForm(name, className, scoreString) {
+            const formBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLScFIONa7YclBZekvstGb53velJco890w5hxsn22A-dNrg6eYA/formResponse";
+            
+            const formData = new URLSearchParams();
+            formData.append("entry.1249900687", name);
+            formData.append("entry.1134544196", className);
+            formData.append("entry.939633591", scoreString);
+
+            fetch(formBaseUrl, {
+                method: "POST",
+                mode: "no-cors",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: formData.toString()
+            }).then(() => {
+                const statusEl = document.getElementById("form-submit-status");
+                if (statusEl) {
+                    statusEl.className = "text-xs p-3 rounded-xl bg-emerald-950/80 border border-emerald-600/50 text-emerald-300 font-bold";
+                    statusEl.innerText = "✅ Đã lưu thành công kết quả bài làm lên hệ thống của giáo viên!";
+                }
+            }).catch(err => {
+                console.error("Lỗi gửi dữ liệu:", err);
+                const statusEl = document.getElementById("form-submit-status");
+                if (statusEl) {
+                    statusEl.innerText = "⚠️ Đã ghi nhận điểm trên thiết bị.";
+                }
+            });
+        }
+    </script>
+</body>
+</html>
